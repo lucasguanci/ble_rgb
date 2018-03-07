@@ -47,9 +47,10 @@ static int bleprph_gap_event(struct ble_gap_event *event, void *arg);
 /** RGB task handler **/
 #define RGB_TASK_PRIO   5
 #define RGB_STACK_SIZE  (OS_STACK_ALIGN(336))
-struct os_eventq rgb_evq;
 struct os_task rgb_task;
-bssnz_t os_stack_t rgb_stack[RGB_STACK_SIZE];
+os_stack_t rgb_task_stack[RGB_STACK_SIZE];
+
+static int led_pin;
 
 /**
  * Logs information about a connection to the console.
@@ -286,6 +287,15 @@ bleprph_on_sync(void)
     bleprph_advertise();
 }
 
+void rgb_task_handler(void *arg) {
+    led_pin = 29;
+    hal_gpio_init_out(led_pin,1);
+    while(1) {
+      os_time_delay(1000);
+      hal_gpio_toggle(led_pin);
+    }
+}
+
 /**
  * main
  *
@@ -330,26 +340,9 @@ main(void)
 
     conf_load();
 
-    /* If this app is acting as the loader in a split image setup, jump into
-     * the second stage application instead of starting the OS.
-     */
-#if MYNEWT_VAL(SPLIT_LOADER)
-    {
-        void *entry;
-        rc = split_app_go(&entry, true);
-        if (rc == 0) {
-            hal_system_start(entry);
-        }
-    }
-#endif
-
-    /* initialize output pin */
-    rc = hal_gpio_init_out(29, 1);
-
-    /* initialize rgb eventq */
-    //os_eventq_init(&rgb_evq);
-    /* create RGB reader task */
-    //;
+    /* init task */
+    os_task_init(&rgb_task, "rgb_task", rgb_task_handler, NULL,
+            RGB_TASK_PRIO, OS_WAIT_FOREVER, rgb_task_stack, RGB_STACK_SIZE);
 
     /*
      * As the last thing, process events from default event queue.

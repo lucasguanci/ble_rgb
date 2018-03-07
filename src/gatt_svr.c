@@ -155,7 +155,7 @@ gatt_svr_chr_access_rgb(uint16_t conn_handle, uint16_t attr_handle,
         /* pin number */
         //uint32_t pin = gatt_rgb_val & 0x000f;
         BLEPRPH_LOG(DEBUG, "wrote: %u, rgb_red_val:%u\n", gatt_rgb_val, rgb_red_val);
-        hal_gpio_write(29,rgb_red_val);
+        //hal_gpio_write(29,rgb_red_val);
 
         /* assume dir = 1 (output) */
 #ifdef APP
