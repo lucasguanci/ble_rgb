@@ -47,10 +47,12 @@ static int bleprph_gap_event(struct ble_gap_event *event, void *arg);
 /** RGB task handler **/
 #define RGB_TASK_PRIO   5
 #define RGB_STACK_SIZE  (OS_STACK_ALIGN(336))
+struct os_eventq rgb_evq;
 struct os_task rgb_task;
 os_stack_t rgb_task_stack[RGB_STACK_SIZE];
 
-static int led_pin;
+static int LED_PIN = 18;
+uint8_t BLE_LED_TOGGLE_ENQUEUE_EVENT_STATUS = 0;
 
 /**
  * Logs information about a connection to the console.
@@ -287,14 +289,52 @@ bleprph_on_sync(void)
     bleprph_advertise();
 }
 
-void rgb_task_handler(void *arg) {
-    led_pin = 29;
-    hal_gpio_init_out(led_pin,1);
-    while(1) {
-      os_time_delay(1000);
-      hal_gpio_toggle(led_pin);
-    }
+/* returns rgb_evq */
+static struct os_eventq *
+rgb_evq_get(void)
+{
+    return &rgb_evq;
 }
+
+/* event callback handler */
+static void ble_led_toggle_ev(struct os_event *ev) {
+  // ev->ev_arg sono i dati
+  // https://mynewt.apache.org/os/core_os/event_queue/os_eventq_put/
+  BLE_LED_TOGGLE_ENQUEUE_EVENT_STATUS = 1;
+  hal_gpio_toggle(LED_PIN);
+}
+
+/* event enqueuer */
+void ble_led_toggle_enqueue_event(uint8_t *ble_evt) {
+  struct os_event *ev;
+
+  /* Allocates memory for the event */
+  ev = (struct os_event *) os_malloc(sizeof(struct os_event));
+
+  if ( !ev ) {
+    ;
+  } else {
+
+      /*
+       * Initializes the event with the ble_hs_event_rx_hci_ev callback function
+       * and the hci_evt data for the callback function to use.
+       */
+      ev->ev_queued = 0;
+      ev->ev_cb = ble_led_toggle_ev;
+      ev->ev_arg = ble_evt;
+
+      /* Enqueues the event on the ble_hs_evq */
+      os_eventq_put(rgb_evq_get(), ev);
+  }
+}
+
+void rgb_task_handler(void *arg) {
+  hal_gpio_init_out(LED_PIN,1);
+  while(1) {
+    os_eventq_run(rgb_evq_get());
+  }
+}
+
 
 /**
  * main
@@ -341,6 +381,7 @@ main(void)
     conf_load();
 
     /* init task */
+    os_eventq_init(&rgb_evq);
     os_task_init(&rgb_task, "rgb_task", rgb_task_handler, NULL,
             RGB_TASK_PRIO, OS_WAIT_FOREVER, rgb_task_stack, RGB_STACK_SIZE);
 

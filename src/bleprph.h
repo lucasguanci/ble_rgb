@@ -6,7 +6,7 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *  http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
@@ -62,6 +62,10 @@ void phy_update(uint8_t phy);
 /** Misc. */
 void print_bytes(const uint8_t *bytes, int len);
 void print_addr(const void *addr);
+
+/** BLE RGB **/
+void ble_led_toggle_enqueue_event(uint8_t *ble_evt);
+uint8_t BLE_LED_TOGGLE_ENQUEUE_EVENT_STATUS;
 
 #ifdef __cplusplus
 }
