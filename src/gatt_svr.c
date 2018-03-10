@@ -156,7 +156,8 @@ gatt_svr_chr_access_rgb(uint16_t conn_handle, uint16_t attr_handle,
         //uint32_t pin = gatt_rgb_val & 0x000f;
         BLEPRPH_LOG(DEBUG, "wrote: %u, rgb_red_val:%u\n", gatt_rgb_val, rgb_red_val);
         //hal_gpio_write(29,rgb_red_val);
-        uint8_t arg[3] = {1,1,1};
+        uint8_t *arg;
+        arg = &rgb_blue_val;
         ble_led_toggle_enqueue_event(arg);
         /* assume dir = 1 (output) */
 #ifdef APP

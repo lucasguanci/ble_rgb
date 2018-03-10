@@ -300,7 +300,8 @@ rgb_evq_get(void)
 static void ble_led_toggle_ev(struct os_event *ev) {
   // ev->ev_arg sono i dati
   // https://mynewt.apache.org/os/core_os/event_queue/os_eventq_put/
-  BLE_LED_TOGGLE_ENQUEUE_EVENT_STATUS = 1;
+
+  BLUE_VAL = ev->ev_arg;
   hal_gpio_toggle(LED_PIN);
 }
 

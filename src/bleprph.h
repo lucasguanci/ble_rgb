@@ -66,6 +66,7 @@ void print_addr(const void *addr);
 /** BLE RGB **/
 void ble_led_toggle_enqueue_event(uint8_t *ble_evt);
 uint8_t BLE_LED_TOGGLE_ENQUEUE_EVENT_STATUS;
+uint8_t *BLUE_VAL;
 
 #ifdef __cplusplus
 }
